@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login
 from rest_framework.permissions import AllowAny, IsAuthenticated # Cambio en la importación
 from django.db.models import Q
 
@@ -98,17 +98,41 @@ def user_login(request):
         if '@' in username:
             try:
                 user = User.objects.get(email=username)
-            except ObjectDoesNotExist:
+            except User.DoesNotExist:
                 pass
 
         if not user:
             user = authenticate(username=username, password=password)
 
         if user:
+            login(request, user)
             token, _ = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key}, status=status.HTTP_200_OK)
 
+            try:
+                business = Business.objects.get(user=user)
+                business_data = {
+                    'id': business.id,
+                    'name': business.name,
+                    'photo_link': business.photo_link,
+                    'authorization_number': business.authorization_number,
+                    'invoice_series': business.invoice_series,
+                    'invoice_number': business.invoice_number,
+                    'last_registered_invoice': business.last_registered_invoice,
+                    'number_of_product_records_available': business.number_of_product_records_available,
+                    'plan_type_id': business.plan_type_id,  # ID del tipo de plan vinculado al negocio
+                    'currency_id': business.currency_id  # ID de la moneda vinculada al negocio
+                }
+
+            except Business.DoesNotExist:
+                business_data = None
+
+            return Response({
+                'user_id': user.id,
+                'token': token.key,
+                'business': business_data  # Incluye detalles del negocio en la respuesta
+            }, status=status.HTTP_200_OK)
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+    
 
 # Configuración de permisos para la vista de cierre de sesión
 @api_view(['POST'])
