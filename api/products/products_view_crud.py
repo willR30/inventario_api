@@ -105,10 +105,8 @@ def delete_product(request):
 def search_products_by_name(request):
     """
     Search for products by name with a partial match and filter by the user's associated business.
-
     This view allows you to search for products by a partial name match (case-insensitive) within the context
     of the user's associated business.
-
     Parameters:
     - request (Request): The HTTP request object containing the user's authentication and search query.
 

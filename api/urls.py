@@ -1,6 +1,7 @@
 from rest_framework import routers
 from django.urls import path, include
 from .views import PaymentTypeViewSet, CurrencyViewSet, PlanTypeViewSet, BusinessViewSet, UserRoleViewSet, SubUserRegistrationViewSet, ProductCategoryViewSet
+from rest_framework.documentation import include_docs_urls
      
 
 #this is a default crud api with django framework, this include the default UI
@@ -13,6 +14,10 @@ router.register(r'user-roles', UserRoleViewSet)
 router.register(r'sub-user-registrations', SubUserRegistrationViewSet)
 
 urlpatterns = [
+
+    #ruta para documentacion
+    path('docs/', include_docs_urls(title='API Documentation')),
+
     path('api/', include(router.urls)),
 
     path('user/', include('api.user.user_urls')),
