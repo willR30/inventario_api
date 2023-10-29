@@ -1,0 +1,12 @@
+from django.urls import path
+from api.invoice.invoices_view_crud import *
+
+urlpatterns = [
+     #import invoice
+    path('create-invoice/', create_invoice, name='create-invoice'),
+    path('list-invoices/', list_invoices, name='list-invoices'),
+    path('update-invoice/',update_invoice, name='update-invoice'),
+    path('delete-invoice/',delete_invoice, name='delete-invoice'),
+
+
+]

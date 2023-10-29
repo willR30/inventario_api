@@ -4,13 +4,15 @@ from django.contrib.auth.models import User
 
 from django.db import models
 
+
 # Modelo para PaymentType
 class PaymentType(models.Model):
     '''
         Diferentes tipos de ejemplo: Efectivo, Transferencia, Bitcoin etc
     '''
-    name = models.CharField(max_length=50) 
+    name = models.CharField(max_length=50)
     description = models.CharField(max_length=255, null=True)
+
 
 # Modelo para Currency
 class Currency(models.Model):
@@ -21,6 +23,7 @@ class Currency(models.Model):
     symbol = models.CharField(max_length=10)
     international_identifier = models.CharField(max_length=10)
 
+
 # Modelo para PlanType
 class PlanType(models.Model):
     '''
@@ -30,6 +33,7 @@ class PlanType(models.Model):
     '''
     name = models.CharField(max_length=100)
     max_product_record_count = models.IntegerField()
+
 
 # Modelo para Business
 class Business(models.Model):
@@ -46,11 +50,12 @@ class Business(models.Model):
     authorization_number = models.CharField(max_length=100)
     invoice_series = models.CharField(max_length=50)
     invoice_number = models.CharField(max_length=10)
-    last_registered_invoice = models.CharField(max_length=10)
+    last_registered_invoice = models.CharField(max_length=10)  # por defecto el valor al crear la cuenta es 0
     number_of_product_records_available = models.IntegerField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     plan_type = models.ForeignKey(PlanType, on_delete=models.CASCADE)
     currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
+
 
 # Modelo para UserRole
 class UserRole(models.Model):
@@ -60,6 +65,7 @@ class UserRole(models.Model):
     '''
     role = models.CharField(max_length=50)
     detail = models.CharField(max_length=255, null=True)
+
 
 # Modelo para SubUserRegistration
 class SubUserRegistration(models.Model):
@@ -72,6 +78,7 @@ class SubUserRegistration(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     role = models.ForeignKey(UserRole, on_delete=models.CASCADE)
 
+
 # Modelo para ProductCategory
 class ProductCategory(models.Model):
     '''
@@ -83,6 +90,7 @@ class ProductCategory(models.Model):
     name = models.CharField(max_length=100)
     icon_link = models.TextField(null=True)
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
+
 
 # Modelo para Product
 class Product(models.Model):
@@ -104,7 +112,8 @@ class Product(models.Model):
     sale_price = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.ForeignKey(ProductCategory, on_delete=models.CASCADE)
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
-    with_iva = models.BooleanField()
+    with_iva = models.BooleanField()  # en esta version todos los productos tienen iva
+
 
 # Modelo para Supplier
 class Supplier(models.Model):
@@ -118,6 +127,7 @@ class Supplier(models.Model):
     phone = models.CharField(max_length=20)
     s_address = models.CharField(max_length=254)
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
+
 
 # Modelo para Customer
 class Customer(models.Model):
@@ -139,8 +149,7 @@ class Sale(models.Model):
     quantity = models.IntegerField()
     cost_price_at_time = models.DecimalField(max_digits=10, decimal_places=2)
     sale_price_at_time = models.DecimalField(max_digits=10, decimal_places=2)
-    #invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
-
+    # invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
 
 
 # Modelo para Invoice
@@ -153,4 +162,4 @@ class Invoice(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
     payment_type = models.ForeignKey(PaymentType, on_delete=models.CASCADE)
-    sale=models.ManyToManyField(Sale)
+    sale = models.ManyToManyField(Sale)
