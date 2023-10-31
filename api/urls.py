@@ -1,6 +1,6 @@
 from rest_framework import routers
 from django.urls import path, include
-from .views import PaymentTypeViewSet, CurrencyViewSet, PlanTypeViewSet, BusinessViewSet, UserRoleViewSet, SubUserRegistrationViewSet, ProductCategoryViewSet
+from .views import PaymentTypeViewSet, CurrencyViewSet, PlanTypeViewSet, BusinessViewSet, UserRoleViewSet
 from rest_framework.documentation import include_docs_urls
      
 
@@ -11,11 +11,10 @@ router.register(r'currencies', CurrencyViewSet)
 router.register(r'plan-types', PlanTypeViewSet)
 router.register(r'businesses', BusinessViewSet)
 router.register(r'user-roles', UserRoleViewSet)
-router.register(r'sub-user-registrations', SubUserRegistrationViewSet)
 
 urlpatterns = [
 
-    #ruta para documentacion
+    #route for docuementation
     path('docs/', include_docs_urls(title='API Documentation')),
 
     path('api/', include(router.urls)),

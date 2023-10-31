@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from api.models import Sale, Product
 from api.serializers import SaleSerializer
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_sale(request):
@@ -66,6 +67,7 @@ def list_sales(request):
     serializer = SaleSerializer(sales, many=True)
     return Response({"message": "Sales listed successfully", "data": serializer.data}, status=status.HTTP_200_OK)
 
+
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_sale(request):
@@ -92,6 +94,7 @@ def update_sale(request):
         return Response({"error": "Failed to update the sale", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     except Sale.DoesNotExist:
         return Response({"error": "Sale not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])

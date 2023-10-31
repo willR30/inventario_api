@@ -22,19 +22,16 @@ from .serializers import PaymentTypeSerializer, CurrencySerializer, PlanTypeSeri
 
 class PaymentTypeViewSet(viewsets.ModelViewSet):
     queryset = PaymentType.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
     serializer_class = PaymentTypeSerializer
 
 
 class CurrencyViewSet(viewsets.ModelViewSet):
     queryset = Currency.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
     serializer_class = CurrencySerializer
 
 
 class PlanTypeViewSet(viewsets.ModelViewSet):
     queryset = PlanType.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
     serializer_class = PlanTypeSerializer
 
 
@@ -56,40 +53,7 @@ class SubUserRegistrationViewSet(viewsets.ModelViewSet):
     serializer_class = SubUserRegistrationSerializer
 
 
-class ProductCategoryViewSet(viewsets.ModelViewSet):
-    queryset = ProductCategory.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = ProductCategorySerializer
 
-
-class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = ProductSerializer
-
-
-class SupplierViewSet(viewsets.ModelViewSet):
-    queryset = Supplier.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = SupplierSerializer
-
-
-class CustomerViewSet(viewsets.ModelViewSet):
-    queryset = Customer.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = CustomerSerializer
-
-
-class InvoiceViewSet(viewsets.ModelViewSet):
-    queryset = Invoice.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = InvoiceSerializer
-
-
-class SaleViewSet(viewsets.ModelViewSet):
-    queryset = Sale.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = SaleSerializer
 
 
 

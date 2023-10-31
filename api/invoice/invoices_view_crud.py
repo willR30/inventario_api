@@ -25,6 +25,7 @@ def create_invoice(request):
         return Response({"message": "Invoice created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
     return Response({"error": "Failed to create the invoice", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def list_invoices(request):
