@@ -3,8 +3,9 @@ from api.user.user_view_autentication import *
 
 urlpatterns = [
     #autenticación rutas
-    path('user/register/', register_user, name='register'),
-    path('user/login/', user_login, name='login'),
-    path('user/logout/', user_logout, name='logout'),
+    path('register/', register_user, name='register'),
+    path('login/', user_login, name='login'),
+    path('logout/', user_logout, name='logout'),
+    path('register-user-with-business/', register_user_with_business, name='register_user_with_business'),
 
 ]

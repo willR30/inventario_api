@@ -1,6 +1,6 @@
 from rest_framework import viewsets, generics, permissions
 from django.contrib.auth.models import User
-from api.serializers import UserSerializer
+from api.serializers import UserSerializer, BusinessSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
@@ -9,7 +9,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login
 from rest_framework.permissions import AllowAny, IsAuthenticated  # Cambio en la importación
 from django.db.models import Q
-from api.models import Business
+from api.models import Business, PlanType, Currency
 
 
 # Configuración de permisos para las vistas de registro e inicio de sesión
@@ -35,6 +35,93 @@ def register_user(request):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])  # Permite el acceso sin autenticación
+def register_user_with_business(request):
+    """
+        Register a new user and associate them with a business.
+
+        This endpoint allows for the registration of a new user along with the creation of a business
+        associated with that user. Both user and business data should be provided in the request JSON.
+
+        Parameters:
+        - user (object): User data for registration. Fields may include:
+          - username (string): User's username.
+          - password (string): User's password.
+
+        - business (object): Business data to create a business associated with the user. Fields may include:
+          - name (string): Business name.
+          - photo_link (string): Link to business photo (optional).
+          - authorization_number (string): Business authorization number.
+          - invoice_series (string): Invoice series.
+          - invoice_number (integer): Invoice number.
+          - last_registered_invoice (integer): Last registered invoice number.
+          - number_of_product_records_available (integer): Number of product records available.
+          - plan_type_id (integer): ID of the associated plan type.
+          - currency_id (integer): ID of the associated currency.
+
+        Returns:
+        - 201 Created: If the user and business are successfully registered.
+        - 400 Bad Request: If there are validation errors or a failure in user/business registration.
+        - 405 Method Not Allowed: If an invalid request method is used.
+
+        Permission:
+        - AllowAny: Access is allowed without authentication.
+
+        Example Request:
+        ```
+        POST /register-user-with-business/
+        {
+          "user": {
+            "username": "newuser",
+            "password": "password123"
+          },
+          "business": {
+            "name": "My Business",
+            "authorization_number": "123456",
+            "invoice_series": "A",
+            "invoice_number": 1000,
+            "last_registered_invoice": 1000,
+            "number_of_product_records_available": 500,
+            "plan_type": 1,
+            "currency": 1
+          }
+        }
+        ```
+
+        Example Response:
+        ```
+        HTTP/1.1 201 Created
+        {
+          "message": "User and business registered successfully"
+        }
+    """
+    if request.method == 'POST':
+        user_data = request.data.get('user', {})  # Obtén los datos del usuario del JSON
+        business_data = request.data.get('business', {})  # Obtén los datos del negocio del JSON
+
+        # Crea el usuario
+        user_serializer = UserSerializer(data=user_data)
+        if user_serializer.is_valid():
+            user = user_serializer.save()
+
+            # Crea el negocio relacionado con el usuario
+            business_data['user'] = user.id  # Asocia el usuario al negocio
+            business_serializer = BusinessSerializer(data=business_data)
+
+            if business_serializer.is_valid():
+                business_serializer.save()
+                return Response({"message": "User and business registered successfully"}, status=status.HTTP_201_CREATED)
+            else:
+                user.delete()  # Elimina el usuario si falla la creación del negocio
+                return Response({"error": "Failed to create the business", "business_errors": business_serializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Failed to create the user", "user_errors": user_serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
+    return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @api_view(['POST'])

@@ -41,8 +41,9 @@ def list_products_by_business(request):
     :return: Response with a list of products associated with the business or an error if no products are found.
     
     """
-    business_id = request.data.get('business_id')  # Business ID
-    products = Product.objects.filter(business__id=business_id)
+    user = request.user  # Obtener el usuario autenticado
+    business = Business.objects.get(user=user)  # Obtener el negocio asociado al usuario
+    products = Product.objects.filter(business__id=business)
     serializer = ProductSerializer(products, many=True)
     return Response({"message": "Products listed successfully", "data": serializer.data}, status=status.HTTP_200_OK)
 
