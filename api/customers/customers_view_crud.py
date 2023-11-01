@@ -2,10 +2,10 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from sympy.logic.inference import valid
-
 from api.models import Customer
 from api.serializers import CustomerSerializer
+from api.views import  get_business_id_by_user_from_server
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -25,7 +25,8 @@ def create_customer(request):
         return Response({"message": "Customer created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
     return Response({"error": "Failed to create the customer", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_customers(request):
     """
@@ -36,8 +37,8 @@ def list_customers(request):
         :param request: The HTTP request object.
         :return: Response with success message and a list of customers associated with the business.
     """
-    business_id = request.data.get('business_id')  # Business ID
-    customers = Customer.objects.filter(business__id=business_id)
+    business = get_business_id_by_user_from_server(request)
+    customers = Customer.objects.filter(business_id=business)
     serializer = CustomerSerializer(customers, many=True)
     return Response({"message": "Customers listed successfully", "data": serializer.data}, status=status.HTTP_200_OK)
 

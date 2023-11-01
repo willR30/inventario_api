@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from api.models import Product, Business
 from api.serializers import ProductSerializer
 
-
+from api.views import get_business_id_by_user_from_server
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_product(request):
@@ -28,7 +28,7 @@ def create_product(request):
     return Response({"error": "Failed to create the product", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_products_by_business(request):
     """
@@ -41,9 +41,8 @@ def list_products_by_business(request):
     :return: Response with a list of products associated with the business or an error if no products are found.
     
     """
-    user = request.user  # Obtener el usuario autenticado
-    business = Business.objects.get(user=user)  # Obtener el negocio asociado al usuario
-    products = Product.objects.filter(business__id=business)
+    business = get_business_id_by_user_from_server(request)
+    products = Product.objects.filter(business_id=business)
     serializer = ProductSerializer(products, many=True)
     return Response({"message": "Products listed successfully", "data": serializer.data}, status=status.HTTP_200_OK)
 
@@ -96,9 +95,6 @@ def delete_product(request):
         return Response({"message": "Product deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
     except Product.DoesNotExist:
         return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
-
-
-
 
 
 @api_view(['POST'])

@@ -7,7 +7,6 @@ from api.models import Product, Invoice, Business
 from api.serializers import InvoiceSerializer
 
 
-
 # endpoint adicionales
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

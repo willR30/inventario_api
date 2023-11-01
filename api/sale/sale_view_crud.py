@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from api.models import Sale, Product
 from api.serializers import SaleSerializer
+from api.views import get_business_id_by_user_from_server
 
 
 @api_view(['POST'])
@@ -49,7 +50,8 @@ def create_sale(request):
 
         return Response({'message': 'Sale created successfully'}, status=status.HTTP_201_CREATED)
 
-@api_view(['POST'])
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_sales(request):
     """
@@ -62,8 +64,8 @@ def list_sales(request):
     :return: Response with a list of sales associated with the business or an error if no sales are found.
     
     """
-    business_id = request.data.get('business_id')  # Business ID
-    sales = Sale.objects.filter(invoice__business__id=business_id)
+    business = get_business_id_by_user_from_server(request)
+    sales = Sale.objects.filter(invoice__business_id=business)
     serializer = SaleSerializer(sales, many=True)
     return Response({"message": "Sales listed successfully", "data": serializer.data}, status=status.HTTP_200_OK)
 

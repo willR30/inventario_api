@@ -5,6 +5,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from api.models import Supplier
 from api.serializers import SupplierSerializer
+from api.views import get_business_id_by_user_from_server
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -28,7 +30,8 @@ def create_supplier(request):
         return Response({"message": "Supplier created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
     return Response({"error": "Failed to create the supplier", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_suppliers(request):
     """
@@ -41,10 +44,11 @@ def list_suppliers(request):
     :return: Response with a list of suppliers associated with the business or an error if no suppliers are found.
     
     """
-    business_id = request.data.get('business_id')  # Business ID
-    suppliers = Supplier.objects.filter(business__id=business_id)
+    business = get_business_id_by_user_from_server(request)
+    suppliers = Supplier.objects.filter(business_id=business)
     serializer = SupplierSerializer(suppliers, many=True)
     return Response({"message": "Suppliers listed successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
