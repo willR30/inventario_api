@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from api.models import ProductCategory
 from api.serializers import ProductCategorySerializer
+from api.views import get_business_id_by_user_from_server
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -28,7 +29,8 @@ def create_product_category(request):
         return Response({"message": "Product category created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
     return Response({"error": "Failed to create the product category", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_product_categories(request):
     """
@@ -42,10 +44,11 @@ def list_product_categories(request):
     are found.
     
     """
-    business_id = request.data.get('business_id')  # Business ID
-    product_categories = ProductCategory.objects.filter(business__id=business_id)
+    business = get_business_id_by_user_from_server(request)
+    product_categories = ProductCategory.objects.filter(business_id=business)
     serializer = ProductCategorySerializer(product_categories, many=True)
     return Response({"message": "Product categories listed successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
@@ -74,6 +77,7 @@ def update_product_category(request):
         return Response({"error": "Failed to update the product category", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     except ProductCategory.DoesNotExist:
         return Response({"error": "Product category not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])

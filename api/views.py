@@ -53,7 +53,10 @@ class SubUserRegistrationViewSet(viewsets.ModelViewSet):
     serializer_class = SubUserRegistrationSerializer
 
 
-
+def get_business_id_by_user_from_server(request):
+    user = request.user  # Obtener el usuario autenticado
+    business = Business.objects.get(user=user)
+    return business
 
 
 
