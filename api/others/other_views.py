@@ -191,3 +191,10 @@ def get_complete_invoice_number_series(request):
         return Response({'concatenated_info': concatenated_info}, status=status.HTTP_200_OK)
     except Business.DoesNotExist:
         return Response({'error': 'Business not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+
+
+

@@ -87,3 +87,21 @@ def delete_invoice(request):
         return Response({"message": "Invoice deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
     except Invoice.DoesNotExist:
         return Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_total_all_for_invoice(request):
+    """
+    Get the historic total from all invoices
+    """
+    # Obtiene el ID del negocio del usuario autenticado
+    business_id = get_business_id_by_user_from_server(request)
+
+    # Verifica si existen facturas para el negocio
+    total=0
+    invoices = Invoice.objects.filter(business=business_id)
+    for i in invoices:
+        total += i.total
+
+    return Response({"total_sales": total}, status=status.HTTP_200_OK)

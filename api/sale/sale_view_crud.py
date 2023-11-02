@@ -1,10 +1,13 @@
 # api/views.py
-
+from django.http.response import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from api.models import Sale, Product
+from sympy import Sum
+from api.views import get_business_id_by_user_from_server
+
+from api.models import Sale, Product, Invoice
 from api.serializers import SaleSerializer
 from api.views import get_business_id_by_user_from_server
 
@@ -119,3 +122,5 @@ def delete_sale(request):
         return Response({"message": "Sale deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
     except Sale.DoesNotExist:
         return Response({"error": "Sale not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
