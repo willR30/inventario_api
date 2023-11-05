@@ -59,4 +59,23 @@ def get_business_id_by_user_from_server(request):
     return business
 
 
+def decrement_register_available_for_business(request):
+    business_id = get_business_id_by_user_from_server(request)
+    try:
+        business = Business.objects.get(id=business_id)
+        business.last_registered_invoice -= 1
+        business.save()
+        return True  # Return True to indicate success
+    except Business.DoesNotExist:
+        return False  # Return False to indicate failure
 
+
+def increment_register_available_for_business(request):
+    business_id = get_business_id_by_user_from_server(request)
+    try:
+        business = Business.objects.get(id=business_id)
+        business.last_registered_invoice += 1
+        business.save()
+        return True  # Return True to indicate success
+    except Business.DoesNotExist:
+        return False  # Return False to indicate failure

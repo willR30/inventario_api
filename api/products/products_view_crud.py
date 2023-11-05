@@ -5,7 +5,9 @@ from rest_framework.permissions import IsAuthenticated
 from api.models import Product, Business
 from api.serializers import ProductSerializer
 
-from api.views import get_business_id_by_user_from_server
+from api.views import get_business_id_by_user_from_server, increment_register_available_for_business, decrement_register_available_for_business
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_product(request):
@@ -24,6 +26,7 @@ def create_product(request):
     serializer = ProductSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
+        decrement_register_available_for_business(request)
         return Response({"message": "Product created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
     return Response({"error": "Failed to create the product", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -92,6 +95,7 @@ def delete_product(request):
     try:
         product = Product.objects.get(pk=product_id)
         product.delete()
+        decrement_register_available_for_business(request)
         return Response({"message": "Product deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
     except Product.DoesNotExist:
         return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
