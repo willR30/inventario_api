@@ -57,7 +57,7 @@ def register_user_with_business(request):
           - authorization_number (string): Business authorization number.
           - invoice_series (string): Invoice series.
           - invoice_number (integer): Invoice number.
-          - last_registered_invoice (integer): Last registered invoice number.
+          - last_registered_invoice (integer): this is a copy from the plan type that user choose in that moment
           - number_of_product_records_available (integer): Number of product records available.
           - plan_type_id (integer): ID of the associated plan type.
           - currency_id (integer): ID of the associated currency.
@@ -83,7 +83,6 @@ def register_user_with_business(request):
             "authorization_number": "123456",
             "invoice_series": "A",
             "invoice_number": 1000,
-            "last_registered_invoice": 1000,
             "number_of_product_records_available": 500,
             "plan_type": 1,
             "currency": 1
@@ -106,9 +105,17 @@ def register_user_with_business(request):
         user_serializer = UserSerializer(data=user_data)
         if user_serializer.is_valid():
             user = user_serializer.save()
+            # Obtiene el valor de "max_product_record_count" del PlanType
+            plan_type_id = business_data.get('plan_type')
+            try:
+                plan_type = PlanType.objects.get(id=plan_type_id)
+            except PlanType.DoesNotExist:
+                return Response({"error": "PlanType not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Crea el negocio relacionado con el usuario
             business_data['user'] = user.id  # Asocia el usuario al negocio
+            business_data['number_of_product_records_available'] = plan_type.max_product_record_count #pasamos el valor como parámetro
+            business_data['last_registered_invoice'] = "0"
             business_serializer = BusinessSerializer(data=business_data)
 
             if business_serializer.is_valid():
