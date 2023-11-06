@@ -183,6 +183,7 @@ def user_login(request):
 
             return Response({
                 'user_id': user.id,
+                'user_name': user.username,
                 'token': token.key,
                 'business': business_data  # Incluye detalles del negocio en la respuesta
             }, status=status.HTTP_200_OK)
