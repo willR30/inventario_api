@@ -1,16 +1,5 @@
-from rest_framework import viewsets, generics, permissions
-from django.contrib.auth.models import User
-from .serializers import UserSerializer
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework import status
-from django.core.exceptions import ObjectDoesNotExist
-from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate, login
-from rest_framework.permissions import AllowAny, IsAuthenticated  # Cambio en la importación
-from django.db.models import Q
-
-from django.contrib.auth import logout
+from rest_framework import viewsets, permissions
+from django.middleware.csrf import get_token
 from django.http import JsonResponse
 
 from .models import PaymentType, Currency, PlanType, Business, UserRole, SubUserRegistration, ProductCategory, Product, \
@@ -79,3 +68,8 @@ def increment_register_available_for_business(request):
         return True  # Return True to indicate success
     except Business.DoesNotExist:
         return False  # Return False to indicate failure
+
+
+def get_csrf_token(request):
+    _csrf_token = get_token(request)
+    return JsonResponse({'csrf_token': _csrf_token})
