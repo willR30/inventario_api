@@ -192,7 +192,7 @@ def user_login(request):
 
 # Configuración de permisos para la vista de cierre de sesión
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])  # Permite el acceso solo a usuarios autenticados
+#@permission_classes([IsAuthenticated])  # Permite el acceso solo a usuarios autenticados
 def user_logout(request):
     """
     Log out a user.
