@@ -11,4 +11,5 @@ urlpatterns = [
     path('get_currency_by_business/', get_currency_by_business, name='get_currency_by_business'),
     path('get_complete_invoice_number_series/', get_complete_invoice_number_series,
          name='get_complete_invoice_number_series'),
+    path('update_business_name_and_photo', edit_name_photo_for_business, name='edit_name_photo_for_business')
 ]

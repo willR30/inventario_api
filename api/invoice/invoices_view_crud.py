@@ -5,7 +5,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from api.models import Invoice
 from api.serializers import InvoiceSerializer
-from api.views import get_business_id_by_user_from_server
+from api.views import get_business_id_by_user_from_server, increment_last_registered_invoice
 
 
 @api_view(['POST'])
@@ -35,6 +35,7 @@ def create_invoice(request):
     serializer = InvoiceSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
+        increment_last_registered_invoice(request)#aumentamos la ultima factura en 1
         return Response({"message": "Invoice created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
     return Response({"error": "Failed to create the invoice", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
