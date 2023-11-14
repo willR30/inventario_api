@@ -6,20 +6,25 @@ from rest_framework.permissions import IsAuthenticated  # Cambio en la importaci
 from django.db.models import Q
 from api.models import Product, Invoice, Business
 from api.serializers import InvoiceSerializer
-
+from api.views import get_business_id_by_user_from_server
 
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def subtract_stock(request):
     """
-    Reduce the stock quantity of a product by the specified amount.
+    Subtracts the specified quantity from the stock of a product.
 
-    This function expects a JSON with 'product_id' and 'quantity' to perform the stock reduction. If the operation is successful, it responds with a success message. If the product doesn't exist or the stock is insufficient, it returns an error.
+    JSON Input:
+    {
+      "product_id": 1,  # Product ID
+      "quantity": 5
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a success message if the stock is updated, or an error if the product doesn't exist or there's insufficient stock.
-    
+    Returns:
+    200 OK with a success message on successful stock update,
+    400 Bad Request if there is insufficient stock,
+    404 Not Found if the product doesn't exist.
     """
     if request.method == 'POST':
         product_id = request.data.get('product_id')
@@ -30,12 +35,12 @@ def subtract_stock(request):
             if product.stock >= quantity:
                 product.stock -= quantity
                 product.save()
-                return Response({'message': 'Stock actualizado correctamente.'}, status=status.HTTP_200_OK)
+                return Response({'message': 'Stock updated successfully.'}, status=status.HTTP_200_OK)
             else:
-                return Response({'error': 'No hay suficiente stock disponible.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'Insufficient stock available.'}, status=status.HTTP_400_BAD_REQUEST)
         except Product.DoesNotExist:
-            return Response({'error': 'El producto no existe.'}, status=status.HTTP_404_NOT_FOUND)
-    return Response({'error': 'Método no permitido.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            return Response({'error': 'Product does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+    return Response({'error': 'Method not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @api_view(['POST'])
@@ -43,26 +48,27 @@ def subtract_stock(request):
 @permission_classes([IsAuthenticated])
 def customer_invoices(request):
     """
-    List all invoices associated with a specific customer.
+    Retrieves invoices associated with a specified customer.
 
-    This function expects to receive the 'cliente_id' as part of the JSON.
+    JSON Input:
+    {
+      "customer_id": 1  # Customer ID
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a list of invoices associated with the customer or an error if no invoices are found.
-    
+    Returns:
+    200 OK with invoice data on success,
+    404 Not Found if no invoices are found for the specified customer.
     """
     if request.method == 'POST':
-        cliente_id = request.data.get('cliente_id')
+        customer_id = request.data.get('customer_id')
         try:
-            facturas = Invoice.objects.filter(customer=cliente_id)
-            # Puedes serializar las facturas aquí si deseas enviar datos serializados como respuesta
-            serializer = InvoiceSerializer(facturas, many=True)
+            invoices = Invoice.objects.filter(customer=customer_id)
+            serializer = InvoiceSerializer(invoices, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-            # return Response(facturas.values(), status=status.HTTP_200_OK)
         except Invoice.DoesNotExist:
-            return Response({'error': 'No se encontraron facturas para el cliente especificado.'},
+            return Response({'error': 'No invoices found for the specified customer.'},
                             status=status.HTTP_404_NOT_FOUND)
-    return Response({'error': 'Método no permitido.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    return Response({'error': 'Method not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @api_view(['POST'])
@@ -70,35 +76,40 @@ def customer_invoices(request):
 @permission_classes([IsAuthenticated])
 def invoices_by_specified_date_range(request):
     """
-    List invoices within a date range.
+    Retrieves invoices within a specified date range.
 
-    This function expects to receive a JSON with 'rango_fechas' that contains 'fecha_inicio' (start date) and 'fecha_fin' (end date). The function lists invoices within the specified date range and responds with the results.
+    JSON Input:
+    {
+      "rango_fechas": {
+        "fecha_inicio": "2023-01-01T00:00:00Z",
+        "fecha_fin": "2023-12-31T23:59:59Z"
+      }
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with invoices within the specified date range or an error if no invoices are found.
-    
+    Returns:
+    200 OK with invoice data on success,
+    404 Not Found if no invoices are found within the specified date range,
+    400 Bad Request if date parameters are missing.
     """
     if request.method == 'POST':
-        rango_fechas = request.data.get('rango_fechas', None)
+        date_range = request.data.get('rango_fechas', None)
 
-        if rango_fechas and 'fecha_inicio' in rango_fechas and 'fecha_fin' in rango_fechas:
-            fecha_inicio = rango_fechas['fecha_inicio']
-            fecha_fin = rango_fechas['fecha_fin']
+        if date_range and 'fecha_inicio' in date_range and 'fecha_fin' in date_range:
+            start_date = date_range['fecha_inicio']
+            end_date = date_range['fecha_fin']
 
             try:
-                facturas = Invoice.objects.filter(
-                    Q(invoice_date__gte=fecha_inicio) & Q(invoice_date__lte=fecha_fin)
+                invoices = Invoice.objects.filter(
+                    Q(invoice_date__gte=start_date) & Q(invoice_date__lte=end_date)
                 )
-                # Puedes serializar las facturas aquí si deseas enviar datos serializados como respuesta
-                serializer = InvoiceSerializer(facturas, many=True)
+                serializer = InvoiceSerializer(invoices, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
-                # return Response(facturas.values(), status=status.HTTP_200_OK)
             except Invoice.DoesNotExist:
-                return Response({'error': 'No se encontraron facturas en el rango especificado.'},
+                return Response({'error': 'No invoices found within the specified date range.'},
                                 status=status.HTTP_404_NOT_FOUND)
 
-        return Response({'error': 'Los parámetros de fecha son obligatorios.'}, status=status.HTTP_400_BAD_REQUEST)
-    return Response({'error': 'Método no permitido.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response({'error': 'Date parameters are mandatory.'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'error': 'Method not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @api_view(['POST'])
@@ -106,67 +117,66 @@ def invoices_by_specified_date_range(request):
 @permission_classes([IsAuthenticated])
 def invoices_in_month(request):
     """
-    List invoices for a specific month.
+    Retrieves invoices for a specified month.
 
-    This function expects to receive the 'mes' as part of the JSON. The function lists invoices for the specified month and responds with the results.
+    JSON Input:
+    {
+      "mes": 1  # Month (1-12)
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with invoices for the specified month or an error if no invoices are found.
-    
+    Returns:
+    200 OK with invoice data on success,
+    404 Not Found if no invoices are found for the specified month,
+    400 Bad Request if the month parameter is missing.
     """
     if request.method == 'POST':
-        mes = request.data.get('mes', None)
+        month = request.data.get('mes', None)
 
-        if mes:
+        if month:
             try:
-                facturas = Invoice.objects.filter(invoice_date__month=mes)
-                # Puedes serializar las facturas aquí si deseas enviar datos serializados como respuesta
-                serializer = InvoiceSerializer(facturas, many=True)
+                invoices = Invoice.objects.filter(invoice_date__month=month)
+                serializer = InvoiceSerializer(invoices, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except Invoice.DoesNotExist:
-                return Response({'error': 'No se encontraron facturas para el mes especificado.'},
+                return Response({'error': 'No invoices found for the specified month.'},
                                 status=status.HTTP_404_NOT_FOUND)
 
-        return Response({'error': 'El parámetro de mes es obligatorio.'}, status=status.HTTP_400_BAD_REQUEST)
-    return Response({'error': 'Método no permitido.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response({'error': 'Month parameter is mandatory.'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'error': 'Method not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def get_last_registered_invoice(request):
     """
-    Retrieve the last registered invoice number for a specific business.
+    Retrieves the last registered invoice number for the authenticated user's business.
 
-    This function expects to receive the 'business_id' as part of the JSON and retrieves the last registered invoice number for that business.
-
-    :param request: The HTTP request object.
-    :return: Response with the last registered invoice number or an error if the business is not found.
+    Returns:
+    200 OK with the last registered invoice number on success,
+    404 Not Found if the business is not found.
     """
     try:
-        business_id = request.data.get('business_id')  # Obtiene el ID del negocio del JSON
-        business = Business.objects.get(id=business_id)
+        business = get_business_id_by_user_from_server(request)
         last_invoice = business.last_registered_invoice
         return Response({'last_registered_invoice': last_invoice}, status=status.HTTP_200_OK)
     except Business.DoesNotExist:
         return Response({'error': 'Business not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def get_currency_by_business(request):
     """
-    Retrieve currency information for a specific business.
+    Retrieves the currency information for the authenticated user's business.
 
-    This function expects to receive the 'business_id' as part of the JSON and retrieves the currency details associated with that business.
-
-    :param request: The HTTP request object.
-    :return: Response with currency details for the business or an error if the business is not found.
+    Returns:
+    200 OK with currency information on success,
+    404 Not Found if the business is not found.
     """
     try:
-        business_id = request.data.get('business_id')  # Obtiene el ID del negocio del JSON
-        business = Business.objects.get(id=business_id)
+        business = get_business_id_by_user_from_server(request)
         currency = business.currency
         return Response({'currency': currency.name,
                          'symbol': currency.symbol,
@@ -176,23 +186,21 @@ def get_currency_by_business(request):
         return Response({'error': 'Business not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def get_complete_invoice_number_series(request):
     """
-    Retrieve the concatenated information of authorization number, invoice series, and invoice number for a specific business.
+    Retrieves the complete invoice number series for the authenticated user's business.
 
-    This function expects to receive the 'business_id' as part of the JSON and retrieves and concatenates the information of authorization number, invoice series, and invoice number.
-
-    :param request: The HTTP request object.
-    :return: Response with the concatenated information or an error if the business is not found.
+    Returns:
+    200 OK with the concatenated invoice number series on success,
+    404 Not Found if the business is not found.
     """
     try:
-        business_id = request.data.get('business_id')  # Obtiene el ID del negocio del JSON
-        business = Business.objects.get(id=business_id)
+        business = get_business_id_by_user_from_server(request)
 
-        # Concatena los valores en una sola cadena
+        # Concatenates the values into a single string
         concatenated_info = f"{business.authorization_number} {business.invoice_series} {business.invoice_number}"
 
         return Response({'concatenated_info': concatenated_info}, status=status.HTTP_200_OK)

@@ -13,49 +13,22 @@ from api.views import  get_business_id_by_user_from_server
 @permission_classes([IsAuthenticated])
 def create_customer(request):
     """
-            Create a new product.
+    Creates a new customer.
 
-            This function expects a JSON with product data to create a new product. If the product is created successfully,
-            it responds with a success message and the product data. If there are validation errors in the data, it returns an error
-            message with details.
+    JSON Input:
+    {
+      "first_name": "Customer First Name",
+      "last_name": "Customer Last Name",
+      "email": "customer@example.com",
+      "phone": "123-456-7890",
+      "c_address": "Customer Address",
+      "business": 1  # Business ID
+    }
 
-            :param request: The HTTP request object.
-            :return: Response with a success message and product data if the product is created, or an error message if creation fails.
-
-            Example JSON Request:
-            {
-                "photo_link": "product_photo_url",
-                "name": "Product Name",
-                "description": "Product description",
-                "stock": 10,
-                "cost_price": 7.5,
-                "sale_price": 10.0,
-                "category_id": 1,
-                "business_id": 1,
-                "with_iva": true
-            }
-
-            Example JSON Response:
-            {
-                "message": "Product created successfully",
-                "data": {
-                    "id": 1,
-                    "name": "Product Name",
-                    "description": "Product description",
-                    "stock": 10,
-                    "cost_price": 7.5,
-                    "sale_price": 10.0,
-                    "category_id": 1,
-                    "business_id": 1,
-                    "with_iva": true
-                }
-            }
-
-            Status Codes:
-            - 201 Created: If the product is created successfully.
-            - 400 Bad Request: If there are validation errors or other issues.
+    Returns:
+    201 Created on success, 400 Bad Request on failure.
     """
-    data = request.data  # JSON with data for the new customer
+    data = request.data
     serializer = CustomerSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
@@ -67,6 +40,12 @@ def create_customer(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def list_customers(request):
+    """
+    Lists all customers associated with the authenticated user's business.
+
+    Returns:
+    200 OK with customer data on success.
+    """
     business = get_business_id_by_user_from_server(request)
     customers = Customer.objects.filter(business_id=business)
     serializer = CustomerSerializer(customers, many=True)
@@ -77,8 +56,24 @@ def list_customers(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def update_customer(request):
-    data = request.data  # JSON with updated customer data
-    customer_id = data.get('customer_id')  # Get the customer ID from the JSON
+    """
+    Updates an existing customer.
+
+    JSON Input:
+    {
+      "customer_id": 1,  # Customer ID to update
+      "first_name": "Updated Customer First Name",
+      "last_name": "Updated Customer Last Name",
+      "email": "updated_customer@example.com",
+      "phone": "123-456-7890",
+      "c_address": "Updated Customer Address"
+    }
+
+    Returns:
+    200 OK with updated customer data on success, 400 Bad Request on failure, 404 Not Found if the customer doesn't exist.
+    """
+    data = request.data
+    customer_id = data.get('customer_id')
     try:
         customer = Customer.objects.get(pk=customer_id)
         serializer = CustomerSerializer(customer, data=data, partial=True)
@@ -94,8 +89,19 @@ def update_customer(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def delete_customer(request):
-    data = request.data  # JSON with the customer ID to delete
-    customer_id = data.get('customer_id')  # Get the customer ID from the JSON
+    """
+    Deletes a customer.
+
+    JSON Input:
+    {
+      "customer_id": 1  # Customer ID to delete
+    }
+
+    Returns:
+    204 No Content on success, 404 Not Found if the customer doesn't exist.
+    """
+    data = request.data
+    customer_id = data.get('customer_id')
     try:
         customer = Customer.objects.get(pk=customer_id)
         customer.delete()
