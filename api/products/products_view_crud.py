@@ -86,6 +86,7 @@ def update_product(request):
         serializer = ProductSerializer(product, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            increment_register_available_for_business(request)
             return Response({"message": "Product updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
         return Response({"error": "Failed to update the product", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     except Product.DoesNotExist:

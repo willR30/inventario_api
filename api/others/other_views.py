@@ -5,8 +5,9 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated  # Cambio en la importación
 from django.db.models import Q
 from api.models import Product, Invoice, Business
-from api.serializers import InvoiceSerializer
+from api.serializers import InvoiceSerializer, BusinessSerializer
 from api.views import get_business_id_by_user_from_server
+
 
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
@@ -206,6 +207,38 @@ def get_complete_invoice_number_series(request):
         return Response({'concatenated_info': concatenated_info}, status=status.HTTP_200_OK)
     except Business.DoesNotExist:
         return Response({'error': 'Business not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def edit_name_photo_for_business(request):
+    """
+    Edit the name and photo of the business.
+
+    JSON Input:
+    {
+      "name": "New Business Name",
+      "photo_link": "https://example.com/new_photo.jpg"
+    }
+
+    Returns:
+    200 OK with success message and updated business data on success,
+    400 Bad Request with error details if the input is invalid.
+    """
+    business_id = get_business_id_by_user_from_server(request)
+
+    try:
+        business = Business.objects.get(id=business_id)
+    except Business.DoesNotExist:
+        return Response({"error": "Business not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    data = request.data  # JSON with updated business data
+    serializer = BusinessSerializer(business, data=data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Business updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+    return Response({"error": "Failed to update the business", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

@@ -52,7 +52,7 @@ def decrement_register_available_for_business(request):
     business_id = get_business_id_by_user_from_server(request)
     try:
         business = Business.objects.get(id=business_id)
-        business.last_registered_invoice -= 1
+        business.number_of_product_records_available -= 1
         business.save()
         return True  # Return True to indicate success
     except Business.DoesNotExist:
@@ -63,7 +63,27 @@ def increment_register_available_for_business(request):
     business_id = get_business_id_by_user_from_server(request)
     try:
         business = Business.objects.get(id=business_id)
+        business.number_of_product_records_available += 1
+        business.save()
+        return True  # Return True to indicate success
+    except Business.DoesNotExist:
+        return False  # Return False to indicate failure
+
+
+def increment_last_registered_invoice(request):
+    try:
+        business = get_business_id_by_user_from_server(request)
         business.last_registered_invoice += 1
+        business.save()
+        return True  # Return True to indicate success
+    except Business.DoesNotExist:
+        return False  # Return False to indicate failure
+
+
+def decrement_last_registered_invoice(request):
+    try:
+        business = get_business_id_by_user_from_server(request)
+        business.last_registered_invoice -= 1
         business.save()
         return True  # Return True to indicate success
     except Business.DoesNotExist:
