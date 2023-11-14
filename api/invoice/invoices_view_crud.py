@@ -1,5 +1,3 @@
-# api/views.py
-
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
@@ -15,14 +13,25 @@ from api.views import get_business_id_by_user_from_server
 @permission_classes([IsAuthenticated])
 def create_invoice(request):
     """
-    Create a new invoice in the database.
+    Creates a new invoice.
 
-    This function expects to receive a JSON with the invoice's data. The function validates the data and responds with a success message if the creation is successful.
+    JSON Input:
+    {
+      "invoice_number": "ABC123",
+      "invoice_date": "2023-11-13T12:00:00Z",
+      "sub_total": 100.0,
+      "iva": 15.0,
+      "total": 115.0,
+      "customer": 1,  # Customer ID
+      "business": 1,  # Business ID
+      "payment_type": 1,  # PaymentType ID
+      "sale": [{"product": 1, "quantity": 2, "cost_price_at_time": 7.0, "sale_price_at_time": 10.0}]
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with success message and data of the created invoice.
+    Returns:
+    201 Created on success, 400 Bad Request on failure.
     """
-    data = request.data  # JSON with data for the new invoice
+    data = request.data
     serializer = InvoiceSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
@@ -35,12 +44,10 @@ def create_invoice(request):
 @permission_classes([IsAuthenticated])
 def list_invoices(request):
     """
-    List all invoices associated with a specific business.
+    Lists all invoices associated with the authenticated user's business.
 
-    This function expects to receive the business's ID as part of the JSON.
-
-    :param request: The HTTP request object.
-    :return: Response with success message and a list of invoices associated with the business.
+    Returns:
+    200 OK with invoice data on success.
     """
     business = get_business_id_by_user_from_server(request)
     invoices = Invoice.objects.filter(business_id=business)
@@ -53,15 +60,24 @@ def list_invoices(request):
 @permission_classes([IsAuthenticated])
 def update_invoice(request):
     """
-    Update the information of an existing invoice in the database.
+    Updates an existing invoice.
 
-    This function expects to receive a JSON with the updated invoice data, including the ID of the invoice to be updated.
+    JSON Input:
+    {
+      "invoice_id": 1,  # Invoice ID to update
+      "invoice_number": "Updated_ABC123",
+      "invoice_date": "2023-11-14T12:00:00Z",
+      "sub_total": 120.0,
+      "iva": 18.0,
+      "total": 138.0,
+      "customer": 2  # Updated Customer ID
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with success message and the data of the updated invoice.
+    Returns:
+    200 OK with updated invoice data on success, 400 Bad Request on failure, 404 Not Found if the invoice doesn't exist.
     """
-    data = request.data  # JSON with updated invoice data
-    invoice_id = data.get('invoice_id')  # Get the invoice ID from the JSON
+    data = request.data
+    invoice_id = data.get('invoice_id')
     try:
         invoice = Invoice.objects.get(pk=invoice_id)
         serializer = InvoiceSerializer(invoice, data=data, partial=True)
@@ -78,15 +94,18 @@ def update_invoice(request):
 @permission_classes([IsAuthenticated])
 def delete_invoice(request):
     """
-    Delete an invoice from the database.
+    Deletes an invoice.
 
-    This function expects to receive the ID of the invoice to be deleted as part of the JSON.
+    JSON Input:
+    {
+      "invoice_id": 1  # Invoice ID to delete
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a success message confirming the deletion.
+    Returns:
+    204 No Content on success, 404 Not Found if the invoice doesn't exist.
     """
-    data = request.data  # JSON with the invoice ID to delete
-    invoice_id = data.get('invoice_id')  # Get the invoice ID from the JSON
+    data = request.data
+    invoice_id = data.get('invoice_id')
     try:
         invoice = Invoice.objects.get(pk=invoice_id)
         invoice.delete()
@@ -99,15 +118,14 @@ def delete_invoice(request):
 @permission_classes([IsAuthenticated])
 def get_total_all_for_invoice(request):
     """
-    Get the historic total from all invoices
-    """
-    # Obtiene el ID del negocio del usuario autenticado
-    business_id = get_business_id_by_user_from_server(request)
+    Retrieves the total sales amount for all invoices associated with the authenticated user's business.
 
-    # Verifica si existen facturas para el negocio
-    total=0
+    Returns:
+    200 OK with the total sales amount on success.
+    """
+    business_id = get_business_id_by_user_from_server(request)
+    total = 0
     invoices = Invoice.objects.filter(business=business_id)
     for i in invoices:
         total += i.total
-
     return Response({"total_sales": total}, status=status.HTTP_200_OK)

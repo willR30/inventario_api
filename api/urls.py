@@ -1,6 +1,6 @@
 from rest_framework import routers
 from django.urls import path, include
-from .views import PaymentTypeViewSet, CurrencyViewSet, PlanTypeViewSet, BusinessViewSet, UserRoleViewSet, get_csrf_token
+from .views import PaymentTypeViewSet, CurrencyViewSet, PlanTypeViewSet, BusinessViewSet, UserRoleViewSet
 from rest_framework.documentation import include_docs_urls
      
 
@@ -13,8 +13,6 @@ router.register(r'businesses', BusinessViewSet)
 router.register(r'user-roles', UserRoleViewSet)
 
 urlpatterns = [
-
-    #route for docuementation
     path('docs/', include_docs_urls(title='API Documentation')),
 
     path('api/', include(router.urls)),
@@ -35,7 +33,5 @@ urlpatterns = [
 
     path('invoice/', include('api.invoice.invoice_urls')),   
 
-    #token para obtener csrf token
-    path('get_csrf_token/', get_csrf_token, name='get_csrf_token')
 
 ]

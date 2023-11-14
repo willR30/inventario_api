@@ -13,16 +13,19 @@ from rest_framework.authentication import TokenAuthentication
 @permission_classes([IsAuthenticated])
 def create_supplier(request):
     """
-    Create a new supplier.
+    Creates a new supplier record.
 
-    This function is designed to create a new supplier, which requires a JSON with supplier data. 
-    It checks if the JSON data is valid, saves the new supplier, and responds with a success message 
-    along with the created supplier data. If there are validation errors in the data, it returns an error message with details.
+    JSON Input:
+    {
+      "name": "Supplier Name",
+      "email": "supplier@email.com",
+      "phone": "1234567890",
+      "address": "Supplier Address"
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a success message and created supplier data if successful, or an error message with 
-    validation errors if data is invalid.
-    
+    Returns:
+    201 Created with success message and created supplier data on success,
+    400 Bad Request with error details if the input is invalid.
     """
     data = request.data  # JSON with data for the new supplier
     serializer = SupplierSerializer(data=data)
@@ -37,14 +40,10 @@ def create_supplier(request):
 @permission_classes([IsAuthenticated])
 def list_suppliers(request):
     """
-    List suppliers associated with a specific business.
+    Lists suppliers associated with the authenticated user's business.
 
-    This function expects to receive the 'business_id' as part of the JSON. 
-    It lists all suppliers related to the specified business and responds with the results.
-
-    :param request: The HTTP request object.
-    :return: Response with a list of suppliers associated with the business or an error if no suppliers are found.
-    
+    Returns:
+    200 OK with supplier data on success.
     """
     business = get_business_id_by_user_from_server(request)
     suppliers = Supplier.objects.filter(business_id=business)
@@ -57,16 +56,21 @@ def list_suppliers(request):
 @authentication_classes([TokenAuthentication])
 def update_supplier(request):
     """
-    Update an existing supplier.
+    Updates an existing supplier record.
 
-    This function expects a JSON with updated supplier data and 'supplier_id' to identify the supplier to be updated. 
-    If the update is successful, it responds with a success message and the updated supplier data. If there are validation 
-    errors in the data, it returns an error message with details. If the supplier to update is not found, it returns an error.
+    JSON Input:
+    {
+      "supplier_id": 1,  # Supplier ID to update
+      "name": "Updated Supplier Name",
+      "email": "updated_supplier@email.com",
+      "phone": "9876543210",
+      "address": "Updated Supplier Address"
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a success message and updated supplier data if the update is successful, or an error message 
-    if the update fails or the supplier is not found.
-    
+    Returns:
+    200 OK with success message and updated supplier data on success,
+    400 Bad Request with error details on validation failure,
+    404 Not Found if the supplier record does not exist.
     """
     data = request.data  # JSON with updated supplier data
     supplier_id = data.get('supplier_id')  # Get the supplier ID from the JSON
@@ -86,15 +90,16 @@ def update_supplier(request):
 @permission_classes([IsAuthenticated])
 def delete_supplier(request):
     """
-    Delete a supplier.
+    Deletes an existing supplier record.
 
-    This function expects a JSON with the 'supplier_id' to identify the supplier to be deleted. 
-    If the deletion is successful, it responds with a success message. If the supplier to delete is not found, 
-    it returns an error.
+    JSON Input:
+    {
+      "supplier_id": 1  # Supplier ID to delete
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a success message if the supplier is deleted, or an error message if the supplier is not found.
-    
+    Returns:
+    204 No Content on successful deletion,
+    404 Not Found if the supplier record does not exist.
     """
     data = request.data  # JSON with the supplier ID to delete
     supplier_id = data.get('supplier_id')  # Get the supplier ID from the JSON

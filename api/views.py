@@ -70,6 +70,3 @@ def increment_register_available_for_business(request):
         return False  # Return False to indicate failure
 
 
-def get_csrf_token(request):
-    _csrf_token = get_token(request)
-    return JsonResponse({'csrf_token': _csrf_token})

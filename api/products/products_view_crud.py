@@ -14,17 +14,25 @@ from api.views import get_business_id_by_user_from_server, increment_register_av
 @permission_classes([IsAuthenticated])
 def create_product(request):
     """
-    Create a new product.
+    Creates a new product.
 
-    This function expects a JSON with product data to create a new product. If the product is created successfully,
-    it responds with a success message and the product data. If there are validation errors in the data, it returns an error
-    message with details.
+    JSON Input:
+    {
+      "photo_link": "url_to_product_photo",
+      "name": "Product Name",
+      "description": "Product Description",
+      "stock": 10,
+      "cost_price": 7.0,
+      "sale_price": 10.0,
+      "category": 1,  # ProductCategory ID
+      "business": 1,  # Business ID
+      "with_iva": true
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a success message and product data if the product is created, or an error message if creation fails.
-    
+    Returns:
+    201 Created on success, 400 Bad Request on failure.
     """
-    data = request.data  # JSON with data for the new product
+    data = request.data
     serializer = ProductSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
@@ -38,14 +46,10 @@ def create_product(request):
 @permission_classes([IsAuthenticated])
 def list_products_by_business(request):
     """
-    List products associated with a specific business.
+    Lists all products associated with the authenticated user's business.
 
-    This function expects to receive the 'business_id' as part of the JSON. It lists all products
-    related to the specified business and responds with the results.
-
-    :param request: The HTTP request object.
-    :return: Response with a list of products associated with the business or an error if no products are found.
-    
+    Returns:
+    200 OK with product data on success.
     """
     business = get_business_id_by_user_from_server(request)
     products = Product.objects.filter(business_id=business)
@@ -58,18 +62,25 @@ def list_products_by_business(request):
 @permission_classes([IsAuthenticated])
 def update_product(request):
     """
-    Update an existing product.
+    Updates an existing product.
 
-    This function expects a JSON with updated product data and 'product_id' to identify the product to be updated. 
-    If the update is successful, it responds with a success message and the updated product data. If there are validation errors in the data, it returns an error message with details. If the product to update is not found, it returns an error.
+    JSON Input:
+    {
+      "product_id": 1,  # Product ID to update
+      "photo_link": "updated_url_to_product_photo",
+      "name": "Updated Product Name",
+      "description": "Updated Product Description",
+      "stock": 15,
+      "cost_price": 8.0,
+      "sale_price": 12.0,
+      "category": 2  # Updated ProductCategory ID
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a success message and updated product data if the update is successful, or an error message 
-    if the update fails or the product is not found.
-    
+    Returns:
+    200 OK with updated product data on success, 400 Bad Request on failure, 404 Not Found if the product doesn't exist.
     """
-    data = request.data  # JSON con datos actualizados del producto
-    product_id = data.get('product_id')  # Obtén el ID del producto desde el JSON
+    data = request.data
+    product_id = data.get('product_id')
     try:
         product = Product.objects.get(pk=product_id)
         serializer = ProductSerializer(product, data=data, partial=True)
@@ -86,17 +97,18 @@ def update_product(request):
 @permission_classes([IsAuthenticated])
 def delete_product(request):
     """
-    Delete a product.
+    Deletes a product.
 
-    This function expects a JSON with the 'product_id' to identify the product to be deleted. If the deletion is successful, 
-    it responds with a success message. If the product to delete is not found, it returns an error.
+    JSON Input:
+    {
+      "product_id": 1  # Product ID to delete
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a success message if the product is deleted, or an error message if the product is not found.
-    
+    Returns:
+    204 No Content on success, 404 Not Found if the product doesn't exist.
     """
-    data = request.data  # JSON con el ID del producto a eliminar
-    product_id = data.get('product_id')  # Obtén el ID del producto desde el JSON
+    data = request.data
+    product_id = data.get('product_id')
     try:
         product = Product.objects.get(pk=product_id)
         product.delete()

@@ -15,15 +15,17 @@ from rest_framework.authentication import TokenAuthentication
 @permission_classes([IsAuthenticated])
 def create_product_category(request):
     """
-    Create a new product category.
+    Creates a new product category.
 
-    This function expects a JSON with product category data to create a new product category. 
-    If the product category is created successfully, it responds with a success message and the product category data. 
-    If there are validation errors in the data, it returns an error message with details.
+    JSON Input:
+    {
+      "name": "Fruits",  # Category name
+      "icon_link": "http://example.com/icon.jpg"  # URL of the category icon image
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a success message and product category data if the product category is created, or an error message 
-    if creation fails.
+    Returns:
+    201 Created with success message and category data on success,
+    400 Bad Request with error details on validation failure.
     """
     data = request.data  # JSON with data for the new product category
     serializer = ProductCategorySerializer(data=data)
@@ -38,15 +40,10 @@ def create_product_category(request):
 @permission_classes([IsAuthenticated])
 def list_product_categories(request):
     """
-    List product categories associated with a specific business.
+    Lists product categories associated with the authenticated user's business.
 
-    This function expects to receive the 'business_id' as part of the JSON. It lists all product categories related to 
-    the specified business and responds with the results.
-
-    :param request: The HTTP request object.
-    :return: Response with a list of product categories associated with the business or an error if no product categories 
-    are found.
-    
+    Returns:
+    200 OK with product category data on success.
     """
     business = get_business_id_by_user_from_server(request)
     product_categories = ProductCategory.objects.filter(business_id=business)
@@ -59,17 +56,19 @@ def list_product_categories(request):
 @permission_classes([IsAuthenticated])
 def update_product_category(request):
     """
-    Update an existing product category.
+    Updates an existing product category.
 
-    This function expects a JSON with updated product category data and 'product_category_id' to identify the product category 
-    to be updated. If the update is successful, it responds with a success message and the updated product category data. 
-    If there are validation errors in the data, it returns an error message with details. If the product category to update 
-    is not found, it returns an error.
+    JSON Input:
+    {
+      "product_category_id": 1,  # Product category ID
+      "name": "Vegetables",  # Updated category name
+      "icon_link": "http://example.com/updated_icon.jpg"  # Updated URL of the category icon image
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a success message and updated product category data if the update is successful, or an error message 
-    if the update fails or the product category is not found.
-    
+    Returns:
+    200 OK with success message and updated category data on success,
+    400 Bad Request with error details on validation failure,
+    404 Not Found if the product category does not exist.
     """
     data = request.data  # JSON with updated product category data
     product_category_id = data.get('product_category_id')  # Get the product category ID from the JSON
@@ -89,16 +88,16 @@ def update_product_category(request):
 @permission_classes([IsAuthenticated])
 def delete_product_category(request):
     """
-    Delete a product category.
+    Deletes an existing product category.
 
-    This function expects a JSON with the 'product_category_id' to identify the product category to be deleted.
-    If the deletion is successful, it responds with a success message. If the product category to delete is not found,
-    it returns an error.
+    JSON Input:
+    {
+      "product_category_id": 1  # Product category ID to delete
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a success message if the product category is deleted, or an error message if the product category
-    is not found.
-    
+    Returns:
+    204 No Content on successful deletion,
+    404 Not Found if the product category does not exist.
     """
     data = request.data  # JSON with the product category ID to delete
     product_category_id = data.get('product_category_id')  # Get the product category ID from the JSON

@@ -13,38 +13,39 @@ from rest_framework.authentication import TokenAuthentication
 @permission_classes([IsAuthenticated])
 def create_sale(request):
     """
-    Create a new sale.
+    Creates a new sale record.
 
-    This function is designed to create a new sale, which requires a JSON with sale data. 
-    It first checks if the specified product exists and if there is sufficient stock for the sale. 
-    If the product exists and there's enough stock, it creates a sale record and updates the product's stock. 
-    If successful, it responds with a success message.
+    JSON Input:
+    {
+      "product": 1,  # Product ID for the sale
+      "quantity": 5  # Quantity of the product sold
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a success message if the sale is created, or an error message 
-    if the product doesn't exist or there's insufficient stock.
-    
+    Returns:
+    201 Created with success message on successful sale creation,
+    400 Bad Request with error details if the product or quantity is invalid,
+    404 Not Found if the specified product does not exist.
     """
     if request.method == 'POST':
         data = request.data
 
-        # Verificar si el producto existe
+        # Verify if the product exists
         product_id = data.get('product')
         try:
             product = Product.objects.get(pk=product_id)
         except Product.DoesNotExist:
             return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Verificar si hay suficiente inventario para la venta
+        # Verify if there is sufficient inventory for the sale
         quantity = data.get('quantity')
         if product.stock < quantity:
             return Response({'error': 'Insufficient stock'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Crear el registro de venta
+        # Create the sale record
         sale = Sale(product=product, quantity=quantity)
         sale.save()
 
-        # Actualizar el inventario del producto
+        # Update the product inventory
         product.stock -= quantity
         product.save()
 
@@ -56,14 +57,10 @@ def create_sale(request):
 @permission_classes([IsAuthenticated])
 def list_sales(request):
     """
-    List sales associated with a specific business.
+    Lists sales associated with the authenticated user's business.
 
-    This function expects to receive the 'business_id' as part of the JSON. It lists all sales related to the 
-    specified business and responds with the results.
-
-    :param request: The HTTP request object.
-    :return: Response with a list of sales associated with the business or an error if no sales are found.
-    
+    Returns:
+    200 OK with sale data on success.
     """
     business = get_business_id_by_user_from_server(request)
     sales = Sale.objects.filter(invoice__business_id=business)
@@ -76,16 +73,18 @@ def list_sales(request):
 @permission_classes([IsAuthenticated])
 def update_sale(request):
     """
-    Update an existing sale.
+    Updates an existing sale record.
 
-    This function expects a JSON with updated sale data and 'sale_id' to identify the sale to be updated. 
-    If the update is successful, it responds with a success message and the updated sale data. If there are 
-    validation errors in the data, it returns an error message with details. If the sale to update is not found, 
-    it returns an error.
+    JSON Input:
+    {
+      "sale_id": 1,  # Sale ID to update
+      "quantity": 8  # Updated quantity of the product sold
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a success message and updated sale data if the update is successful, or an error message if the update fails or the sale is not found.
-    
+    Returns:
+    200 OK with success message and updated sale data on success,
+    400 Bad Request with error details on validation failure,
+    404 Not Found if the sale record does not exist.
     """
     data = request.data  # JSON with updated sale data
     sale_id = data.get('sale_id')  # Get the sale ID from the JSON
@@ -105,14 +104,16 @@ def update_sale(request):
 @permission_classes([IsAuthenticated])
 def delete_sale(request):
     """
-    Delete a sale.
+    Deletes an existing sale record.
 
-    This function expects a JSON with the 'sale_id' to identify the sale to be deleted. 
-    If the deletion is successful, it responds with a success message. If the sale to delete is not found, it returns an error.
+    JSON Input:
+    {
+      "sale_id": 1  # Sale ID to delete
+    }
 
-    :param request: The HTTP request object.
-    :return: Response with a success message if the sale is deleted, or an error message if the sale is not found.
-    
+    Returns:
+    204 No Content on successful deletion,
+    404 Not Found if the sale record does not exist.
     """
     data = request.data  # JSON with the sale ID to delete
     sale_id = data.get('sale_id')  # Get the sale ID from the JSON
