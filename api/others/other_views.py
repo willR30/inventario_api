@@ -1,5 +1,6 @@
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.authentication import TokenAuthentication
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated  # Cambio en la importación
 from django.db.models import Q
@@ -7,10 +8,10 @@ from api.models import Product, Invoice, Business
 from api.serializers import InvoiceSerializer
 
 
-# endpoint adicionales
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def restar_stock(request):
+def subtract_stock(request):
     """
     Reduce the stock quantity of a product by the specified amount.
 
@@ -38,8 +39,9 @@ def restar_stock(request):
 
 
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def facturas_de_cliente(request):
+def customer_invoices(request):
     """
     List all invoices associated with a specific customer.
 
@@ -64,8 +66,9 @@ def facturas_de_cliente(request):
 
 
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def facturas_en_rango(request):
+def invoices_by_specified_date_range(request):
     """
     List invoices within a date range.
 
@@ -99,8 +102,9 @@ def facturas_en_rango(request):
 
 
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def facturas_en_mes(request):
+def invoices_in_month(request):
     """
     List invoices for a specific month.
 
@@ -128,6 +132,7 @@ def facturas_en_mes(request):
 
 
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def get_last_registered_invoice(request):
     """
@@ -148,6 +153,7 @@ def get_last_registered_invoice(request):
 
 
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def get_currency_by_business(request):
     """
@@ -171,6 +177,7 @@ def get_currency_by_business(request):
 
 
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def get_complete_invoice_number_series(request):
     """

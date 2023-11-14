@@ -2,13 +2,12 @@ from rest_framework import viewsets, generics, permissions
 from django.contrib.auth.models import User
 from api.serializers import UserSerializer, BusinessSerializer
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.authentication import TokenAuthentication
 from rest_framework import status
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login
 from rest_framework.permissions import AllowAny, IsAuthenticated  # Cambio en la importación
-from django.db.models import Q
 from api.models import Business, PlanType, Currency
 
 
@@ -192,7 +191,8 @@ def user_login(request):
 
 # Configuración de permisos para la vista de cierre de sesión
 @api_view(['POST'])
-#@permission_classes([IsAuthenticated])  # Permite el acceso solo a usuarios autenticados
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])  # Permite el acceso solo a usuarios autenticados
 def user_logout(request):
     """
     Log out a user.
