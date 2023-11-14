@@ -1,14 +1,15 @@
-# api/views.py
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from api.models import Supplier
 from api.serializers import SupplierSerializer
 from api.views import get_business_id_by_user_from_server
+from rest_framework.authentication import TokenAuthentication
 
 
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def create_supplier(request):
     """
@@ -32,6 +33,7 @@ def create_supplier(request):
 
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def list_suppliers(request):
     """
@@ -52,6 +54,7 @@ def list_suppliers(request):
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def update_supplier(request):
     """
     Update an existing supplier.
@@ -77,7 +80,9 @@ def update_supplier(request):
     except Supplier.DoesNotExist:
         return Response({"error": "Supplier not found"}, status=status.HTTP_404_NOT_FOUND)
 
+
 @api_view(['DELETE'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def delete_supplier(request):
     """

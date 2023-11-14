@@ -2,13 +2,16 @@
 
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from api.models import ProductCategory
 from api.serializers import ProductCategorySerializer
 from api.views import get_business_id_by_user_from_server
+from rest_framework.authentication import TokenAuthentication
+
 
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def create_product_category(request):
     """
@@ -31,6 +34,7 @@ def create_product_category(request):
 
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def list_product_categories(request):
     """
@@ -51,6 +55,7 @@ def list_product_categories(request):
 
 
 @api_view(['PUT'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def update_product_category(request):
     """
@@ -80,6 +85,7 @@ def update_product_category(request):
 
 
 @api_view(['DELETE'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def delete_product_category(request):
     """

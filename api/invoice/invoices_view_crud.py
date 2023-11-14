@@ -2,7 +2,8 @@
 
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from api.models import Invoice
 from api.serializers import InvoiceSerializer
@@ -10,6 +11,7 @@ from api.views import get_business_id_by_user_from_server
 
 
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def create_invoice(request):
     """
@@ -29,6 +31,7 @@ def create_invoice(request):
 
 
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def list_invoices(request):
     """
@@ -46,6 +49,7 @@ def list_invoices(request):
 
 
 @api_view(['PUT'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def update_invoice(request):
     """
@@ -68,7 +72,9 @@ def update_invoice(request):
     except Invoice.DoesNotExist:
         return Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
 
+
 @api_view(['DELETE'])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def delete_invoice(request):
     """
