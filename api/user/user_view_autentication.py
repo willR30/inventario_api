@@ -114,7 +114,7 @@ def register_user_with_business(request):
             # Crea el negocio relacionado con el usuario
             business_data['user'] = user.id  # Asocia el usuario al negocio
             business_data['number_of_product_records_available'] = plan_type.max_product_record_count #pasamos el valor como parámetro
-            business_data['last_registered_invoice'] = "0"
+            business_data['last_registered_invoice'] = 0 #Por defecto el valor es el Cero
             business_serializer = BusinessSerializer(data=business_data)
 
             if business_serializer.is_valid():
