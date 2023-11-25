@@ -50,7 +50,7 @@ class Business(models.Model):
     authorization_number = models.CharField(max_length=100)
     invoice_series = models.CharField(max_length=50)
     invoice_number = models.CharField(max_length=10)
-    last_registered_invoice = models.CharField(max_length=10)  # por defecto el valor al crear la cuenta es 0
+    last_registered_invoice = models.IntegerField() # por defecto el valor al crear la cuenta es 0
     number_of_product_records_available = models.IntegerField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     plan_type = models.ForeignKey(PlanType, on_delete=models.CASCADE)

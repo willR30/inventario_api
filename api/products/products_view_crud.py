@@ -182,3 +182,25 @@ def search_products_by_name(request):
     serializer = ProductSerializer(products, many=True)
 
     return Response({"message": "Products listed successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def list_products_by_category(request):
+    user = request.user  # Obtener el usuario autenticado
+    business = Business.objects.get(user=user)  # Obtener el negocio asociado al usuario
+
+    data = request.data
+    category_id = data.get('category_id')
+    print(category_id)
+    # Realizar la búsqueda de productos por coincidencia de nombre
+    products = Product.objects.filter(
+       business_id=business, category=category_id
+    )
+
+    # Serializar los productos encontrados (usando tu serializador)
+    serializer = ProductSerializer(products, many=True)
+
+    return Response({"message": "Products listed successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+
