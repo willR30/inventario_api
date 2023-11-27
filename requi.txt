@@ -22,7 +22,6 @@ keyring==23.5.0
 Kivy==2.2.1
 Kivy-Garden==0.1.5
 kiwisolver==1.4.4
-language-selector==0.1
 launchpadlib==1.10.16
 lazr.restfulclient==0.14.4
 lazr.uri==1.0.6
