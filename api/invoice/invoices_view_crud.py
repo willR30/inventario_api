@@ -57,6 +57,7 @@ def list_invoices(request):
     invoices_list = []
     for invoice in invoices:
         invoice_data = {
+            'invoice_id': invoice.id,
             'invoice_number': invoice.invoice_number,
             'invoice_date': invoice.invoice_date.strftime('%Y-%m-%d %H:%M:%S'),  # Format date as needed
             'sub_total': str(invoice.sub_total),
