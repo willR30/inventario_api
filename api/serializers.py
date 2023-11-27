@@ -63,7 +63,7 @@ class SaleSerializer(serializers.ModelSerializer):
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
-    customer = CustomerSerializer()  # Agregar el serializador del cliente
+    #customer = CustomerSerializer()  # Agregar el serializador del cliente
     sale = SaleSerializer(many=True, read_only=True)  # Utiliza el serializador de Sale para representar las ventas
 
     class Meta:

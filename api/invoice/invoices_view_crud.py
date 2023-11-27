@@ -3,9 +3,10 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from api.models import Invoice
+from api.models import Invoice, Sale
 from api.serializers import InvoiceSerializer
 from api.views import get_business_id_by_user_from_server, increment_last_registered_invoice
+from django.http import JsonResponse
 
 
 @api_view(['POST'])
@@ -52,8 +53,52 @@ def list_invoices(request):
     """
     business = get_business_id_by_user_from_server(request)
     invoices = Invoice.objects.filter(business_id=business)
-    serializer = InvoiceSerializer(invoices, many=True)
-    return Response({"message": "Invoices listed successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+
+    invoices_list = []
+    for invoice in invoices:
+        invoice_data = {
+            'invoice_number': invoice.invoice_number,
+            'invoice_date': invoice.invoice_date.strftime('%Y-%m-%d %H:%M:%S'),  # Format date as needed
+            'sub_total': str(invoice.sub_total),
+            'iva': str(invoice.iva),
+            'total': str(invoice.total),
+            'customer': {
+                'first_name': invoice.customer.first_name,
+                'last_name': invoice.customer.last_name,
+                'email': invoice.customer.email,
+                'phone': invoice.customer.phone,
+                'c_address': invoice.customer.c_address,
+                # Add other customer fields as needed
+            },
+            'business': {
+                'business_id': invoice.business.id,
+                'business_name': invoice.business.name,
+                # Add other business fields as needed
+            },
+            'payment_type': {
+                'payment_type_id': invoice.payment_type.id,
+                'payment_type_name': invoice.payment_type.name,
+                # Add other payment type fields as needed
+            },
+            'sales': []  # List to store sales associated with the invoice
+        }
+
+        # Fetch sales related to the invoice
+        sales = Sale.objects.filter(invoice=invoice)
+        for sale in sales:
+            sale_data = {
+                'product_id': sale.product.id,
+                'product_name': sale.product.name,
+                'quantity': sale.quantity,
+                'cost_price_at_time': str(sale.cost_price_at_time),
+                'sale_price_at_time': str(sale.sale_price_at_time),
+                # Add other sale fields as needed
+            }
+            invoice_data['sales'].append(sale_data)
+
+        invoices_list.append(invoice_data)
+
+    return JsonResponse({"message": "Invoices listed successfully", "data": invoices_list}, status=200)
 
 
 @api_view(['PUT'])

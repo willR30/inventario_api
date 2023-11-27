@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from rest_framework.permissions import AllowAny, IsAuthenticated  # Cambio en la importación
 from api.models import Business, PlanType, Currency
 
@@ -197,16 +197,19 @@ def user_logout(request):
     """
     Log out a user.
 
-    This function allows a logged-in user to log out. 
-    If the logout is successful, it returns a success message. If the logout fails, it returns an error message.
+    This function logs out the currently authenticated user.
 
     :param request: The HTTP request object.
-    :return: Response with a success message if the logout is successful, or an error message if the logout fails.
-    
+    :return: Response indicating successful logout or an error message if the logout fails.
     """
     if request.method == 'POST':
+        # Obteniendo y eliminando el token del usuario actual
         try:
-            request.user.auth_token.delete()
-            return Response({'message': 'Successfully logged out.'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            token = Token.objects.get(user=request.user)
+            token.delete()  # Elimina el token asociado al usuario actual
+        except Token.DoesNotExist:
+            pass
+
+        logout(request)
+        return Response({'message': 'Successfully logged out'}, status=status.HTTP_200_OK)
+    return Response({'error': 'Invalid method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
