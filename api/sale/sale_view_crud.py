@@ -42,7 +42,7 @@ def create_sale(request):
             return Response({'error': 'Insufficient stock'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Create the sale record
-        sale = Sale(product=product, quantity=quantity)
+        sale = Sale(product=product, quantity=quantity, cost_price_at_time=product.cost_price, sale_price_at_time=product.sale_price)
         sale.save()
 
         # Update the product inventory
