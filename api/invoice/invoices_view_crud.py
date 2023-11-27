@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from api.models import Invoice, Sale
-from api.serializers import InvoiceSerializer
+from api.models import Invoice, Sale, Product
+from api.serializers import InvoiceSerializer, SaleSerializer
 from api.views import get_business_id_by_user_from_server, increment_last_registered_invoice
 from django.http import JsonResponse
 
@@ -33,12 +33,42 @@ def create_invoice(request):
     201 Created on success, 400 Bad Request on failure.
     """
     data = request.data
-    serializer = InvoiceSerializer(data=data)
-    if serializer.is_valid():
-        serializer.save()
-        increment_last_registered_invoice(request)#aumentamos la ultima factura en 1
-        return Response({"message": "Invoice created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
-    return Response({"error": "Failed to create the invoice", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    sales_data = data.pop('sale')
+
+    invoice_serializer = InvoiceSerializer(data=data)
+    if invoice_serializer.is_valid():
+        invoice_instance = invoice_serializer.save()
+
+        for sale_data in sales_data:
+            sale_data['invoice'] = invoice_instance.id  # Assign invoice ID to the sale
+            print(sale_data)
+            sale_serializer = SaleSerializer(data=sale_data)
+            if sale_serializer.is_valid():
+
+                product_id = sale_data['product']
+                try:
+                    product = Product.objects.get(pk=product_id)
+                except Product.DoesNotExist:
+                    return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+
+                # Verify if there is sufficient inventory for the sale
+                quantity = sale_data['quantity']
+                if product.stock < quantity:
+                    return Response({'error': 'Insufficient stock'}, status=status.HTTP_400_BAD_REQUEST)
+
+                sale_instance = sale_serializer.save()
+                invoice_instance.sale.add(sale_instance)  # Add the sale to the invoice's sales
+
+                #update the product
+                # Update the product inventory
+                product.stock -= quantity
+                product.save()
+
+        return Response({"message": "Invoice created successfully", "data": invoice_serializer.data},
+                        status=status.HTTP_201_CREATED)
+
+    return Response({"error": "Failed to create the invoice", "errors": invoice_serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
