@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 # Create your models here.
 
 from django.db import models
+from django.utils import timezone
+import uuid
 
 
 # Modelo para PaymentType
@@ -163,3 +165,13 @@ class Invoice(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
     payment_type = models.ForeignKey(PaymentType, on_delete=models.CASCADE)
     sale = models.ManyToManyField(Sale)
+
+
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self):
+        now = timezone.now()
+        return now < self.created_at + timezone.timedelta(hours=1)
