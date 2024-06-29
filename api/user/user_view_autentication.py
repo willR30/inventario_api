@@ -9,6 +9,8 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.permissions import AllowAny, IsAuthenticated  # Cambio en la importación
 from api.models import Business, PlanType, Currency
+import random
+import string
 
 
 # Configuración de permisos para las vistas de registro e inicio de sesión
@@ -113,17 +115,20 @@ def register_user_with_business(request):
 
             # Crea el negocio relacionado con el usuario
             business_data['user'] = user.id  # Asocia el usuario al negocio
-            business_data['number_of_product_records_available'] = plan_type.max_product_record_count #pasamos el valor como parámetro
-            business_data['last_registered_invoice'] = 0 #Por defecto el valor es el Cero
+            business_data[
+                'number_of_product_records_available'] = plan_type.max_product_record_count  #pasamos el valor como parámetro
+            business_data['last_registered_invoice'] = 0  #Por defecto el valor es el Cero
             business_serializer = BusinessSerializer(data=business_data)
 
             if business_serializer.is_valid():
                 business_serializer.save()
-                return Response({"message": "User and business registered successfully"}, status=status.HTTP_201_CREATED)
+                return Response({"message": "User and business registered successfully"},
+                                status=status.HTTP_201_CREATED)
             else:
                 user.delete()  # Elimina el usuario si falla la creación del negocio
-                return Response({"error": "Failed to create the business", "business_errors": business_serializer.errors},
-                                status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Failed to create the business", "business_errors": business_serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": "Failed to create the user", "user_errors": user_serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -213,3 +218,65 @@ def user_logout(request):
         logout(request)
         return Response({'message': 'Successfully logged out'}, status=status.HTTP_200_OK)
     return Response({'error': 'Invalid method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+#Register randon user
+def generate_random_password():
+    length = 8
+    all_characters = string.ascii_letters + string.digits + string.punctuation
+    password = ''.join(random.choice(all_characters) for i in range(length))
+
+    # Ensure the password has at least one uppercase letter, one digit, and one special character
+    while (not any(c.isupper() for c in password) or
+           not any(c.isdigit() for c in password) or
+           not any(c in string.punctuation for c in password)):
+        password = ''.join(random.choice(all_characters) for i in range(length))
+
+    return password
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])  # Permite el acceso sin autenticación
+def register_randon_user(request):
+    """
+    Register a new user.
+
+    This function allows the registration of a new user with the provided data in the request.
+    If the registration is successful, it returns the user data and a token.
+
+    If there are validation errors in the data, it returns an error message with details.
+
+    Example JSON to consume this endpoint:
+    {
+        "email": "example@example.com",
+    }
+
+    :param request: The HTTP request object.
+    :return: Response with user data and a token if the registration is successful,
+    or an error message with validation errors if data is invalid.
+    """
+
+    if request.method == 'POST':
+        email = request.data.get('email')
+        if not email:
+            return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        random_password = generate_random_password()
+        base_username = 'user'
+        username = f"{base_username}{random.randint(1000, 9999)}"
+
+        data = {
+            'email': email,
+            'username': username,
+            'password': random_password
+        }
+
+        serializer = UserSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'username': username,
+                'email': email,
+                'password': random_password
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

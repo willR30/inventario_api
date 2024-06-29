@@ -31,7 +31,9 @@ urlpatterns = [
 
     path('sale/', include('api.sale.sale_urls')),
 
-    path('invoice/', include('api.invoice.invoice_urls')),   
+    path('invoice/', include('api.invoice.invoice_urls')),
+
+    path('restore/', include('api.password_reset.urls_password_reset')),
 
 
 ]

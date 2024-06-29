@@ -140,3 +140,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
 }
+
+
+
+#configurariones para el envio de correo de restablecimiento de password
+# settings.py
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = ''  # Cambia esto por la dirección de tu servidor SMTP
+EMAIL_PORT = 0  # El puerto típico para SMTP con TLS, puedes necesitar cambiarlo a 465 para SSL
+EMAIL_USE_TLS = False  # O cambia a False si usas SSL
+EMAIL_USE_SSL = True  # Pon True si usas SSL, pero no ambos (TLS y SSL)
+EMAIL_HOST_USER = ''  # Tu dirección de correo electrónico
+EMAIL_HOST_PASSWORD = ''  # La contraseña de tu correo electrónico
+DEFAULT_FROM_EMAIL = ''
