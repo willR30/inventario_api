@@ -16,18 +16,18 @@ def create_invoice(request):
     """
     Creates a new invoice.
 
-    JSON Input:
-    {
-      "invoice_number": "ABC123",
-      "invoice_date": "2023-11-13T12:00:00Z",
-      "sub_total": 100.0,
-      "iva": 15.0,
-      "total": 115.0,
-      "customer": 1,  # Customer ID
-      "business": 1,  # Business ID
-      "payment_type": 1,  # PaymentType ID
-      "sale": [{"product": 1, "quantity": 2, "cost_price_at_time": 7.0, "sale_price_at_time": 10.0}]
-    }
+        JSON Input:
+        {
+          "invoice_number": "ABC123",
+          "invoice_date": "2023-11-13T12:00:00Z",
+          "sub_total": 100.0,
+          "iva": 15.0,
+          "total": 115.0,
+          "customer": 1,  # Customer ID
+          "business": 1,  # Business ID
+          "payment_type": 1,  # PaymentType ID
+          "sale": [{"product": 1, "quantity": 2, "cost_price_at_time": 7.0, "sale_price_at_time": 10.0}]
+        }
 
     Returns:
     201 Created on success, 400 Bad Request on failure.

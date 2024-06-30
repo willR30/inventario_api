@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -147,10 +148,10 @@ REST_FRAMEWORK = {
 # settings.py
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = ''  # Cambia esto por la dirección de tu servidor SMTP
-EMAIL_PORT = 0  # El puerto típico para SMTP con TLS, puedes necesitar cambiarlo a 465 para SSL
-EMAIL_USE_TLS = False  # O cambia a False si usas SSL
-EMAIL_USE_SSL = True  # Pon True si usas SSL, pero no ambos (TLS y SSL)
-EMAIL_HOST_USER = ''  # Tu dirección de correo electrónico
-EMAIL_HOST_PASSWORD = ''  # La contraseña de tu correo electrónico
-DEFAULT_FROM_EMAIL = ''
+EMAIL_HOST = os.getenv('EMAIL_HOST', '')  # Dirección de tu servidor SMTP
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 0))  # El puerto típico para SMTP
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False') == 'True'  # True si usas TLS
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True') == 'True'  # True si usas SSL
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')  # Tu dirección de correo electrónico
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')  # La contraseña de tu correo electrónico
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', '')  # Dirección de correo electrónico predeterminada
