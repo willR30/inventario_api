@@ -74,6 +74,10 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200",
+]
+
 ROOT_URLCONF = 'inventario_api.urls'
 
 TEMPLATES = [
