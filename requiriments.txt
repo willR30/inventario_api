@@ -1,7 +1,0 @@
-dj-database-url==2.0.0
-Django==4.2.1
-django-admin-rangefilter==0.10.0
-django-cors-headers==4.1.0
-djangorestframework==3.14.0
-drf-writable-nested==0.7.0
-coreapi==2.3.3
