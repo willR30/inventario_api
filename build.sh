@@ -20,7 +20,7 @@ import os
 import django
 from django.contrib.auth import get_user_model
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project_name.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'inventario_api.settings')
 django.setup()
 
 User = get_user_model()
