@@ -11,6 +11,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated  # Cambio en la
 from api.models import Business, PlanType, Currency
 import random
 import string
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 
 # Configuración de permisos para las vistas de registro e inicio de sesión
@@ -388,6 +391,67 @@ def register_randon_user_with_email_and_business(request):
 
             if business_serializer.is_valid():
                 business_serializer.save()
+                #enviamos el coreo de confirmacion con las credenciales del usuario creado
+                # Datos del correo
+                subject = 'Bienvenido a Polaris - Credenciales de Acceso'
+                html_message = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        .container {{
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                            background-color: #f9f9f9;
+                        }}
+                        .header {{
+                            background-color: #820AD1;
+                            color: white;
+                            padding: 10px 0;
+                            text-align: center;
+                        }}
+                        .content {{
+                            margin: 20px 0;
+                        }}
+                        .footer {{
+                            margin-top: 20px;
+                            padding-top: 10px;
+                            border-top: 1px solid #eaeaea;
+                            text-align: center;
+                            color: #888888;
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>¡Bienvenido a Polaris!</h1>
+                        </div>
+                        <div class="content">
+                            <p>Nos complace darte la bienvenida a nuestra plataforma. A continuación, encontrarás tus credenciales de acceso:</p>
+                            <p><strong>Usuario:</strong> {random_username}</p>
+                            <p><strong>Contraseña:</strong> {random_password}</p>
+                            <p>Puedes acceder a la plataforma a través del siguiente enlace:</p>
+                            <p><a href="URL_de_acceso">Acceder a Polaris</a></p>
+                            <p>Por favor, guarda esta información de manera segura. Si tienes alguna pregunta o necesitas asistencia, no dudes en contactarnos.</p>
+                        </div>
+                        <div class="footer">
+                            <p>Saludos cordiales,<br>El equipo de Polaris</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+                plain_message = strip_tags(html_message)  # Extrae el texto plano del HTML para el mensaje alternativo
+                from_email = 'polaris@willtech.site'
+                to = [email]
+                send_mail(
+                    subject,
+                    plain_message,
+                    from_email,
+                    to,
+                    html_message=html_message,
+                )
                 return Response({
                     "message": "User and business registered successfully",
                     "username": random_username,
