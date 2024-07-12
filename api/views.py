@@ -73,9 +73,10 @@ def increment_register_available_for_business(request):
         business = Business.objects.get(id=business_id)
         business.number_of_product_records_available += 1
         business.save()
-        return True  # Return True to indicate success
+        return True  # Indicar éxito
     except Business.DoesNotExist:
-        return False  # Return False to indicate failure
+        return False  # Indicar fracaso si no se encuentra el Business
+
 
 
 def increment_last_registered_invoice(request):
