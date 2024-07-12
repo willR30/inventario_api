@@ -81,7 +81,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:4200",  # Otra posible URL de tu aplicación Angular
     "https://polaris-invoice-inventory.vercel.app",
     "http://127.1.1.1",
-    "https://willtech.site/polaris-beta/"
+    "https://willtech.site"
     
 ]
 CORS_ALLOW_CREDENTIALS = True
