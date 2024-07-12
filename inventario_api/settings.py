@@ -79,7 +79,10 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",  # URL de tu aplicación Angular
     "http://127.0.0.1:4200",  # Otra posible URL de tu aplicación Angular
-    "https://polaris-invoice-inventory.vercel.app"
+    "https://polaris-invoice-inventory.vercel.app",
+    "http://127.1.1.1",
+    "https://willtech.site/polaris-beta/"
+    
 ]
 CORS_ALLOW_CREDENTIALS = True
 
