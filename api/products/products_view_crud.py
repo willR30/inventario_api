@@ -118,7 +118,7 @@ def delete_product(request):
     try:
         product = Product.objects.get(pk=product_id)
         product.delete()
-        increment_register_available_for_business(request)
+        #increment_register_available_for_business(request)
         return Response({"message": "Product deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
     except Product.DoesNotExist:
         return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
