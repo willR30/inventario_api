@@ -43,20 +43,28 @@ class SubUserRegistrationViewSet(viewsets.ModelViewSet):
 
 
 def get_business_id_by_user_from_server(request):
-    user = request.user  # Obtener el usuario autenticado
-    business = Business.objects.get(user=user)
-    return business
+    user = request.user
+    try:
+        # Asumiendo que cada usuario tiene un solo negocio
+        business = Business.objects.get(user=user)
+        return business.id
+    except Business.DoesNotExist:
+        return None
+
 
 
 def decrement_register_available_for_business(request):
     business_id = get_business_id_by_user_from_server(request)
     try:
+        # Obtener el objeto Business usando el ID
         business = Business.objects.get(id=business_id)
+        # Decrementar el número de registros de productos disponibles
         business.number_of_product_records_available -= 1
+        # Guardar el objeto Business actualizado
         business.save()
-        return True  # Return True to indicate success
+        return True  # Indicar éxito
     except Business.DoesNotExist:
-        return False  # Return False to indicate failure
+        return False  # Indicar fracaso si no se encuentra el Business
 
 
 def increment_register_available_for_business(request):

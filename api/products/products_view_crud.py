@@ -35,10 +35,15 @@ def create_product(request):
     data = request.data
     serializer = ProductSerializer(data=data)
     if serializer.is_valid():
-        serializer.save()
-        decrement_register_available_for_business(request)
-        return Response({"message": "Product created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
-    return Response({"error": "Failed to create the product", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        product = serializer.save()
+        if decrement_register_available_for_business(request):
+            # Serializar el objeto guardado antes de devolverlo en la respuesta
+            return Response({"message": "Product created successfully", "data": ProductSerializer(product).data},
+                            status=status.HTTP_201_CREATED)
+        else:
+            return Response({"error": "Failed to update business records"}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({"error": "Failed to create the product", "errors": serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
