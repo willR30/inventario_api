@@ -445,13 +445,13 @@ def register_randon_user_with_email_and_business(request):
                 plain_message = strip_tags(html_message)  # Extrae el texto plano del HTML para el mensaje alternativo
                 from_email = 'polaris@willtech.site'
                 to = [email]
-                #send_mail(
-                 #   subject,
-                  #  plain_message,
-                   # from_email,
-                    #to,
-                     #html_message=html_message,
-                #)
+                send_mail(
+                    subject,
+                    plain_message,
+                    from_email,
+                    to,
+                    html_message=html_message,
+                )
                 return Response({
                     "message": "User and business registered successfully",
                     "username": random_username,
