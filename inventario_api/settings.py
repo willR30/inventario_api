@@ -75,6 +75,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 ]
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",  # URL de tu aplicación Angular
@@ -113,10 +114,10 @@ WSGI_APPLICATION = 'inventario_api.wsgi.application'
 
 # Replace the SQLite DATABASES configuration with PostgreSQL:
 DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://postgres:postgres@localhost/postgres',
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 # Password validation
@@ -179,11 +180,17 @@ REST_FRAMEWORK = {
 #configurariones para el envio de correo de restablecimiento de password
 # settings.py
 
+
+
+
+def get_bool_env(var_name, default=False):
+    return os.getenv(var_name, str(default)).lower() in ("true", "1", "yes", "on")
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST', '')  # Dirección de tu servidor SMTP
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 0))  # El puerto típico para SMTP
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False') == 'True'  # True si usas TLS
-EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True') == 'True'  # True si usas SSL
+EMAIL_USE_TLS = get_bool_env("EMAIL_USE_TLS", False) # True si usas TLS
+EMAIL_USE_SSL = get_bool_env('EMAIL_USE_SSL', True)  # True si usas SSL
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')  # Tu dirección de correo electrónico
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')  # La contraseña de tu correo electrónico
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', '')  # Dirección de correo electrónico predeterminada

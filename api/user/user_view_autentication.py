@@ -290,68 +290,12 @@ def generate_random_username(base_username='user'):
     return f"{base_username}{random.randint(1000, 9999)}"
 
 
+from django.db import transaction
+import traceback
+
 @api_view(['POST'])
 #@permission_classes([AllowAny])  # Permite el acceso sin autenticación
 def register_randon_user_with_email_and_business(request):
-    """
-    Register a new user and associate them with a business.
-
-    This endpoint allows for the registration of a new user along with the creation of a business
-    associated with that user. Both user and business data should be provided in the request JSON.
-
-    Parameters:
-    - user (object): User data for registration. Fields may include:
-      - email (string): User's email.
-
-    - business (object): Business data to create a business associated with the user. Fields may include:
-      - name (string): Business name.
-      - photo_link (string): Link to business photo (optional).
-      - authorization_number (string): Business authorization number.
-      - invoice_series (string): Invoice series.
-      - invoice_number (integer): Invoice number.
-      - last_registered_invoice (integer): this is a copy from the plan type that user choose in that moment
-      - number_of_product_records_available (integer): Number of product records available.
-      - plan_type_id (integer): ID of the associated plan type.
-      - currency_id (integer): ID of the associated currency.
-
-    Returns:
-    - 201 Created: If the user and business are successfully registered.
-    - 400 Bad Request: If there are validation errors or a failure in user/business registration.
-    - 405 Method Not Allowed: If an invalid request method is used.
-
-    Permission:
-    - AllowAny: Access is allowed without authentication.
-
-    Example Request:
-    ```
-    POST /register-user-with-business/
-    {
-    "user": {
-        "email": "example@example.com"
-    },
-    "business": {
-        "name": "My Business",
-        "photo_link": "http://example.com/photo.jpg",
-        "authorization_number": "123456",
-        "invoice_series": "A",
-        "invoice_number": 1000,
-        "plan_type": 1,
-        "currency": 1
-        }
-    }
-
-    ```
-
-    Example Response:
-    ```
-    HTTP/1.1 201 Created
-    {
-    "message": "User and business registered successfully",
-    "username": "user1933",
-    "password": "Xy3E'?)q"
-    }
-    ```
-    """
     if request.method == 'POST':
         user_data = request.data.get('user', {})
         email = user_data.get('email')
@@ -371,98 +315,114 @@ def register_randon_user_with_email_and_business(request):
 
         business_data = request.data.get('business', {})
 
-        # Create the user
-        user_serializer = UserSerializer(data=user_data)
-        if user_serializer.is_valid():
-            user = user_serializer.save()
+        try:
+            with transaction.atomic():  # <-- Garantiza que todo sea transaccional
+                # Create the user
+                user_serializer = UserSerializer(data=user_data)
+                if not user_serializer.is_valid():
+                    return Response(
+                        {"error": "Failed to create the user", "user_errors": user_serializer.errors},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                user = user_serializer.save()
 
-            # Get the plan type
-            plan_type_id = business_data.get('plan_type')
-            try:
-                plan_type = PlanType.objects.get(id=plan_type_id)
-            except PlanType.DoesNotExist:
-                return Response({"error": "PlanType not found"}, status=status.HTTP_404_NOT_FOUND)
+                # Get the plan type
+                plan_type_id = business_data.get('plan_type')
+                try:
+                    plan_type = PlanType.objects.get(id=plan_type_id)
+                except PlanType.DoesNotExist:
+                    return Response({"error": "PlanType not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            # Create the business
-            business_data['user'] = user.id
-            business_data['number_of_product_records_available'] = plan_type.max_product_record_count
-            business_data['last_registered_invoice'] = 0
-            business_serializer = BusinessSerializer(data=business_data)
+                # Create the business
+                business_data['user'] = user.id
+                business_data['number_of_product_records_available'] = plan_type.max_product_record_count
+                business_data['last_registered_invoice'] = 0
+                business_serializer = BusinessSerializer(data=business_data)
 
-            if business_serializer.is_valid():
+                if not business_serializer.is_valid():
+                    return Response(
+                        {"error": "Failed to create the business", "business_errors": business_serializer.errors},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
                 business_serializer.save()
-                #enviamos el coreo de confirmacion con las credenciales del usuario creado
-                # Datos del correo
-                subject = 'Bienvenido a Polaris - Credenciales de Acceso'
-                html_message = f"""
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <style>
-                        .container {{
-                            font-family: Arial, sans-serif;
-                            padding: 20px;
-                            background-color: #f9f9f9;
-                        }}
-                        .header {{
-                            background-color: #820AD1;
-                            color: white;
-                            padding: 10px 0;
-                            text-align: center;
-                        }}
-                        .content {{
-                            margin: 20px 0;
-                        }}
-                        .footer {{
-                            margin-top: 20px;
-                            padding-top: 10px;
-                            border-top: 1px solid #eaeaea;
-                            text-align: center;
-                            color: #888888;
-                        }}
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="header">
-                            <h1>¡Bienvenido a Polaris!</h1>
+
+                # Intentamos enviar el correo
+                try:
+                    subject = 'Bienvenido a Polaris - Credenciales de Acceso'
+                    html_message = f"""
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <style>
+                            .container {{
+                                font-family: Arial, sans-serif;
+                                padding: 20px;
+                                background-color: #f9f9f9;
+                            }}
+                            .header {{
+                                background-color: #820AD1;
+                                color: white;
+                                padding: 10px 0;
+                                text-align: center;
+                            }}
+                            .content {{
+                                margin: 20px 0;
+                            }}
+                            .footer {{
+                                margin-top: 20px;
+                                padding-top: 10px;
+                                border-top: 1px solid #eaeaea;
+                                text-align: center;
+                                color: #888888;
+                            }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="header">
+                                <h1>¡Bienvenido a Polaris!</h1>
+                            </div>
+                            <div class="content">
+                                <p>Nos complace darte la bienvenida a nuestra plataforma. A continuación, encontrarás tus credenciales de acceso:</p>
+                                <p><strong>Usuario:</strong> {random_username}</p>
+                                <p><strong>Contraseña:</strong> {random_password}</p>
+                                <p>Puedes acceder a la plataforma a través del siguiente enlace:</p>
+                                <p><a href="URL_de_acceso">Acceder a Polaris</a></p>
+                                <p>Por favor, guarda esta información de manera segura. Si tienes alguna pregunta o necesitas asistencia, no dudes en contactarnos.</p>
+                            </div>
+                            <div class="footer">
+                                <p>Saludos cordiales,<br>El equipo de Polaris</p>
+                            </div>
                         </div>
-                        <div class="content">
-                            <p>Nos complace darte la bienvenida a nuestra plataforma. A continuación, encontrarás tus credenciales de acceso:</p>
-                            <p><strong>Usuario:</strong> {random_username}</p>
-                            <p><strong>Contraseña:</strong> {random_password}</p>
-                            <p>Puedes acceder a la plataforma a través del siguiente enlace:</p>
-                            <p><a href="URL_de_acceso">Acceder a Polaris</a></p>
-                            <p>Por favor, guarda esta información de manera segura. Si tienes alguna pregunta o necesitas asistencia, no dudes en contactarnos.</p>
-                        </div>
-                        <div class="footer">
-                            <p>Saludos cordiales,<br>El equipo de Polaris</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
-                """
-                plain_message = strip_tags(html_message)  # Extrae el texto plano del HTML para el mensaje alternativo
-                from_email = 'polaris@willtech.site'
-                to = [email]
-                send_mail(
-                    subject,
-                    plain_message,
-                    from_email,
-                    to,
-                    html_message=html_message,
-                )
+                    </body>
+                    </html>
+                    """
+                    plain_message = strip_tags(html_message)
+                    from_email = 'polaris@willtech.site'
+                    to = [email]
+                    send_mail(
+                        subject,
+                        plain_message,
+                        from_email,
+                        to,
+                        html_message=html_message,
+                    )
+                except Exception as e:
+                    # Si el correo falla, lanzamos excepción para que haga rollback
+                    print("❌ Error enviando correo:", str(e))
+                    traceback.print_exc()
+                    raise Exception("Email sending failed. Transaction rolled back.")
+
                 return Response({
                     "message": "User and business registered successfully",
                     "username": random_username,
                     "password": random_password
                 }, status=status.HTTP_201_CREATED)
-            else:
-                user.delete()  # Delete the user if business creation fails
-                return Response(
-                    {"error": "Failed to create the business", "business_errors": business_serializer.errors},
-                    status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({"error": "Failed to create the user", "user_errors": user_serializer.errors},
+
+        except Exception as e:
+            print("❌ Error general en la transacción:", str(e))
+            traceback.print_exc()
+            return Response({"error": "Transaction failed", "details": str(e)},
                             status=status.HTTP_400_BAD_REQUEST)
+
     return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
