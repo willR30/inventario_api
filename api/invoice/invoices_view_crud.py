@@ -64,6 +64,11 @@ def create_invoice(request):
                 product.stock -= quantity
                 product.save()
 
+            # 🔹 AUMENTAR EL CONTADOR DE FACTURAS DEL NEGOCIO
+            business = invoice_instance.business
+            business.last_registered_invoice += 1
+            business.save(update_fields=['last_registered_invoice'])
+
         return Response({"message": "Invoice created successfully", "data": invoice_serializer.data},
                         status=status.HTTP_201_CREATED)
 
